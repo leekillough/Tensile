@@ -21,7 +21,7 @@
 
 from .Common import globalParameters, HR, pushWorkingPath, popWorkingPath, print1, CHeader, printWarning, listToInitializer, ClientExecutionLock
 from . import ClientExecutable
-from . import YAMLIO
+from . import LibraryIO
 
 import os
 import subprocess
@@ -89,7 +89,7 @@ def main( config ):
   for logicFileName in logicFiles:
     (scheduleName, deviceNames, problemType, solutionsForType, \
         indexOrder, exactLogic, rangeLogic, newLibrary, architectureName) \
-        = YAMLIO.readLibraryLogicForSchedule(logicFileName)
+        = LibraryIO.readLibraryLogicForSchedule(logicFileName)
     if problemType["DataType"].isHalf():
         enableHalf = True
     functions.append((scheduleName, problemType))

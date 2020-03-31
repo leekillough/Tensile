@@ -21,7 +21,7 @@
 
 from .Common import print1, print2, HR, printExit, defaultAnalysisParameters, globalParameters, pushWorkingPath, popWorkingPath, assignParameterWithDefault, startTime, ProgressBar, printWarning
 from .SolutionStructs import Solution
-from . import YAMLIO
+from . import LibraryIO
 from . import SolutionSelectionLibrary
 
 from copy import deepcopy
@@ -53,7 +53,7 @@ def analyzeProblemType( problemType, problemSizeGroups, inputParameters ):
 
     ######################################
     # Read Solutions
-    (problemSizes, solutions) = YAMLIO.readSolutions(solutionsFileName)
+    (problemSizes, solutions) = LibraryIO.readSolutions(solutionsFileName)
     problemSizesList.append(problemSizes)
     solutionsList.append(solutions)
     solutionMinNaming = Solution.getMinNaming(solutions)
@@ -113,11 +113,11 @@ def analyzeProblemType( problemType, problemSizeGroups, inputParameters ):
         Solution.getNameMin(s, solutionMinNaming), \
         Solution.getNameFull(s)))  # this is the right name
 
-  selectionSolutionsIdsList = None 
+  selectionSolutionsIdsList = None
   selectionSolutions = None
   if enableTileSelection:
     validSelectionSolutions = SolutionSelectionLibrary.analyzeSolutionSelection(problemType, problemSizeGroups)
-  
+
     validSelectionSolutionsIncluded = []
     validSelectionSolutionsRemainder = []
     for validSelectionSolution in validSelectionSolutions:
@@ -290,7 +290,7 @@ class LogicAnalyzer:
       self.rangeProblemSizes.update([tuple(problem.sizes) for problem in problemSizes.problems])
       for rangeSize in problemSizes.ranges:
 
-        if globalParameters["ExpandRanges"]: 
+        if globalParameters["ExpandRanges"]:
           # Treat ranges as pile of exacts:
           for rsize in rangeSize.problemSizes:
             self.exactProblemSizes.add(tuple(rsize))
@@ -506,7 +506,7 @@ class LogicAnalyzer:
   # one at a time.  Stop when leastImportantSolution indicates no more
   # solutions can be removed, which appears to be when the solution
   # is used by an exact problem or is the only possible solution for some
-  # problem or doesn't improve the a solution by > SolutionImportanceMin% 
+  # problem or doesn't improve the a solution by > SolutionImportanceMin%
   ##############################################################################
   def removeLeastImportantSolutions(self):
     # Remove least important solutions
@@ -980,7 +980,7 @@ class LogicAnalyzer:
           winnerIdx = solutionIdx
           winnerGFlops = solutionGFlops
         elif solutionGFlops > secondGFlops:
-          secondGFlops = solutionGFlops 
+          secondGFlops = solutionGFlops
 
       winnerTimeMs = totalFlops / winnerGFlops / 1000000.0
       secondTimeMs = totalFlops / secondGFlops / 1000000.0
@@ -1077,7 +1077,7 @@ class LogicAnalyzer:
 
 
   ##############################################################################
-  # Prune a list of solutions, keeping only the indices specified in 
+  # Prune a list of solutions, keeping only the indices specified in
   # keepSolutions.  keepSolutions is a set not a list
   ##############################################################################
   def pruneSolutions(self, keepSolutions):
@@ -1430,7 +1430,7 @@ def main(  config ):
         printExit("%s doesn't exist for %s" % (dataFileName, fileBase) )
       if not os.path.exists(solutionsFileName):
         printExit("%s doesn't exist for %s" % (solutionsFileName, fileBase) )
-      (problemSizes, solutions) = YAMLIO.readSolutions(solutionsFileName)
+      (problemSizes, solutions) = LibraryIO.readSolutions(solutionsFileName)
       if len(solutions) == 0:
         printExit("%s doesn't contains any solutions." % (solutionsFileName) )
       problemType = solutions[0]["ProblemType"]
@@ -1443,7 +1443,7 @@ def main(  config ):
     logicTuple = analyzeProblemType( problemType, problemTypes[problemType], \
         analysisParameters)
 
-    YAMLIO.writeLibraryLogicForSchedule(globalParameters["WorkingPath"], \
+    LibraryIO.writer().writeLibraryLogicForSchedule(globalParameters["WorkingPath"], \
         analysisParameters["ScheduleName"], analysisParameters["ArchitectureName"], \
         analysisParameters["DeviceNames"], logicTuple)
 

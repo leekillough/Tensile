@@ -204,7 +204,7 @@ struct RunGEMMKernelTest: public ::testing::TestWithParam<
         }
         
 	}
-	
+
     void TearDown() override
     {
         hipFree(a_d_alloc);
@@ -520,7 +520,7 @@ TestLibraries()
     }
 
     {
-        auto library = LoadLibraryFile<ContractionProblem>(TestData::Instance().file("kernels_lite/TensileLibrary.yaml").native());
+        auto library = LoadLibraryFile<ContractionProblem>(TestData::Instance().file("kernels_lite/TensileLibrary").native());
         auto adapter = std::make_shared<hip::SolutionAdapter>(debug, "kernels_lite (file)");
         for(auto file: TestData::Instance().glob("kernels_lite/*.*co"))
             adapter->loadCodeObjectFile(file.native());
@@ -529,7 +529,7 @@ TestLibraries()
     }
 
     {
-        auto library = LoadLibraryFile<ContractionProblem>(TestData::Instance().file("kernels_lite_mixed/TensileLibrary.yaml").native());
+        auto library = LoadLibraryFile<ContractionProblem>(TestData::Instance().file("kernels_lite_mixed/TensileLibrary").native());
         auto adapter = std::make_shared<hip::SolutionAdapter>(debug, "kernels_lite_mixed (file)");
         for(auto file: TestData::Instance().glob("kernels_lite_mixed/*.*co"))
             adapter->loadCodeObjectFile(file.native());
@@ -538,7 +538,7 @@ TestLibraries()
     }
 
     {
-        auto library = LoadLibraryFile<ContractionProblem>(TestData::Instance().file("tile_aware_selection/library/TensileLibrary.yaml").native());
+        auto library = LoadLibraryFile<ContractionProblem>(TestData::Instance().file("tile_aware_selection/library/TensileLibrary").native());
 
         auto adapter = std::make_shared<hip::SolutionAdapter>(debug, "tile_aware_selection");
         for(auto file: TestData::Instance().glob("tile_aware_selection/library/*.*co"))
@@ -553,7 +553,7 @@ TestLibraries()
     auto envDir = TestData::Env("TENSILE_TEST_LIBRARY");
     if(envDir)
     {
-        auto library = LoadLibraryFile<ContractionProblem>(envDir.file("TensileLibrary.yaml").native());
+        auto library = LoadLibraryFile<ContractionProblem>(envDir.file("TensileLibrary").native());
         auto adapter = std::make_shared<hip::SolutionAdapter>(debug, "TENSILE_TEST_LIBRARY");
 
         for(auto file: envDir.glob("*.co"))

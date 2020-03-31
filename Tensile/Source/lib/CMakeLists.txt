@@ -38,6 +38,7 @@ set(tensile_sources  ${tensile_sources}
     source/Debug.cpp
     source/EmbeddedLibrary.cpp
     source/KernelArguments.cpp
+    source/MessagePack.cpp
     source/TensorDescriptor.cpp
     source/TensorOps.cpp
     source/Tensile.cpp
@@ -68,9 +69,19 @@ add_library (TensileHost STATIC ${tensile_sources})
 
 target_include_directories(TensileHost INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
+set(MSGPACK_DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/msgpack")
+include(ExternalProject)
+ExternalProject_Add(msgpack
+  GIT_REPOSITORY    https://github.com/msgpack/msgpack-c.git
+  GIT_TAG           cpp-3.2.1
+  CMAKE_ARGS        -DMSGPACK_CXX11=ON -DMSGPACK_BUILD_TESTS=OFF MSGPACK_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=${MSGPACK_DESTINATION}
+)
+add_dependencies(TensileHost msgpack)
+target_include_directories(TensileHost PRIVATE "${MSGPACK_DESTINATION}/include")
+
 if(TENSILE_USE_LLVM)
     target_compile_definitions(TensileHost PUBLIC TENSILE_DEFAULT_SERIALIZATION)
-    find_library(LLVMObjectYAML_LIBRARY 
+    find_library(LLVMObjectYAML_LIBRARY
         NAMES LLVMObjectYAML
         PATHS ${LLVM_LIBRARY_DIR})
     message("LLVMObjectYAML_LIBRARY: ${LLVMObjectYAML_LIBRARY}")
@@ -79,7 +90,7 @@ if(TENSILE_USE_LLVM)
         target_link_libraries(TensileHost PRIVATE LLVMObjectYAML )
     else()
         target_link_libraries(TensileHost PRIVATE LLVM )
-    endif()  
+    endif()
     target_include_directories(TensileHost PRIVATE ${LLVM_INCLUDE_DIRS})
 endif()
 
@@ -93,6 +104,10 @@ if(TENSILE_USE_HIP)
     #add_subdirectory(client)
     target_link_libraries( TensileHost PUBLIC ${HSA_LIBRARIES} hip::device )
 
+endif()
+
+if(Tensile_YAML)
+    target_compile_definitions(TensileHost PUBLIC TENSILE_YAML)
 endif()
 
 if(false)

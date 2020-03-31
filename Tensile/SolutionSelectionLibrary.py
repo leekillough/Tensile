@@ -21,7 +21,7 @@
 
 from .Common import printExit
 from .SolutionStructs import Solution
-from . import YAMLIO
+from . import LibraryIO
 
 import csv
 
@@ -51,19 +51,19 @@ def analyzeSolutionSelection( problemType, problemSizeGroups):
     dataFileNameList.append(dataFileName)
     solutionsFileName = problemSizeGroup[2]
 
-    (_, solutions) = YAMLIO.readSolutions(solutionsFileName)
+    (_, solutions) = LibraryIO.readSolutions(solutionsFileName)
     if len(solutions) == 0:
       printExit("%s doesn't contains any solutions." % (solutionsFileName) )
 
     solutionMinNaming = Solution.getMinNaming(solutions)
 
-    
+
     for solution in solutions:
       solutionName = Solution.getNameMin(solution, solutionMinNaming)
       solution["SolutionNameMin"] = solutionName
       allSolutions.append(solution)
-      
-    dataFile = open(dataFileName, "r") 
+
+    dataFile = open(dataFileName, "r")
     csvFile = csv.reader(dataFile)
 
     rowIdx = 0
@@ -97,7 +97,7 @@ def analyzeSolutionSelection( problemType, problemSizeGroups):
 
   validSolutionsNames = set([])
   for key in performanceMap:
-    (name,_) = performanceMap[key]      
+    (name,_) = performanceMap[key]
     validSolutionsNames.add(name)
   validSolutions = []
   for solution in allSolutions:

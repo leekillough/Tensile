@@ -163,7 +163,7 @@ struct RunGEMMKernelSolutionSelectionTest: public ::testing::TestWithParam<Contr
 #endif
 
 	}
-	
+
     void TearDown() override
     {
         hipFree(a_d);
@@ -182,10 +182,10 @@ TEST_P(RunGEMMKernelSolutionSelectionTest , KernelsTileSelection)
     ContractionProblem problem = GetParam();
     //std::cout << problem << std::endl;
 
-    auto library = LoadLibraryFile<ContractionProblem>(TestData::File("kernels_tile_selection/TensileLibrary.yaml").native());
+    auto library = LoadLibraryFile<ContractionProblem>(TestData::Instance().file("kernels_tile_selection/TensileLibrary").native());
 
     hip::SolutionAdapter adapter(false);
-    adapter.loadCodeObjectFile(TestData::File("kernels_tile_selection/TensileLibrary_gfx906.co").native());
+    adapter.loadCodeObjectFile(TestData::Instance().file("kernels_tile_selection/TensileLibrary_gfx906", "co").native());
 
     ASSERT_NE(library, nullptr);
 

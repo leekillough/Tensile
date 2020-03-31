@@ -32,7 +32,7 @@ from copy import deepcopy
 
 from . import ClientExecutable
 from . import SolutionLibrary
-from . import YAMLIO
+from . import LibraryIO
 from . import Utils
 from .BenchmarkStructs import BenchmarkProcess
 from .ClientWriter import runClient, writeClientParameters, writeClientConfig
@@ -284,12 +284,12 @@ def benchmarkProblemType( problemTypeConfig, problemSizeGroupConfig, \
         solution = solutionsForHardcoded[j]
         if solutionList.count(solution) == 0:
           removeSolutions[i].append(solution)
-    
+
     for i in range(0, len(solutions)):
       solutionsForHardcoded = solutions[i]
       for j in range(0, len(removeSolutions[i])):
           solutionsForHardcoded.remove(removeSolutions[i][j])
-    
+
     # remove hardcoded that don't have any valid benchmarks
     removeHardcoded = []
     for hardcodedIdx in range(0, numHardcoded):
@@ -299,7 +299,7 @@ def benchmarkProblemType( problemTypeConfig, problemSizeGroupConfig, \
     removesExist = len(removeHardcoded) > 0
     for hardcodedParam in removeHardcoded:
       benchmarkStep.hardcodedParameters.remove(hardcodedParam)
-    
+
     if removesExist:
       print1("# Updating winners since kernelwriter removed unused hardcoded solutions.  removeHardcoded=%u winners=%u" %(len(removeHardcoded), len(winners.winners)))
       winners.wpdUpdate( benchmarkStep.hardcodedParameters )
@@ -362,7 +362,7 @@ def benchmarkProblemType( problemTypeConfig, problemSizeGroupConfig, \
     ############################################################################
     # Write Solutions YAML
     ############################################################################
-    YAMLIO.writeSolutions(solutionsFileName, benchmarkStep.problemSizes, \
+    LibraryIO.configWriter().writeSolutions(solutionsFileName, benchmarkStep.problemSizes, \
         solutions )
 
     # End Iteration
@@ -524,7 +524,7 @@ def writeBenchmarkFiles(stepBaseDir, solutions, problemSizes, stepName, filesToC
   newLibraryFile = os.path.join(newLibraryDir, "TensileLibrary.yaml")
   newLibrary = SolutionLibrary.MasterSolutionLibrary.BenchmarkingLibrary(solutions)
   newLibrary.applyNaming(kernelMinNaming)
-  YAMLIO.write(newLibraryFile, Utils.state(newLibrary))
+  LibraryIO.configWriter().write(newLibraryFile, Utils.state(newLibrary))
 
   codeObjectFiles = [os.path.relpath(f, globalParameters["WorkingPath"]) for f in codeObjectFiles]
 
@@ -594,14 +594,14 @@ class WinningParameterDict:
     print1("# Adding Results to Solution Database")
     for hardcodedIdx,hardcodedResults in enumerate(Utils.tqdm(results)):
       if not hardcodedResults: continue
-      
+
       hardcodedParameters = hardcodedParameterList[hardcodedIdx]
       winningIdx = -1
       winningScore = -9999 # -1 is score of invalid so use -9999 here
       # find fastest benchmark parameters for this hardcoded
       for benchmarkIdx,benchmarkResult in enumerate(hardcodedResults):
         if not benchmarkResult: continue
-        
+
         benchmarkScore = max(benchmarkResult) # take fastest regardless of size
         if benchmarkScore > winningScore:
           winningScore = benchmarkScore
@@ -692,7 +692,7 @@ class WinningParameterDict:
   #       0 : parameters
   #       1 : score
   #  - lookupHardcodedParameters is a dict of hard-coded parms, ie "BufferLoad: True"
-  #  - Return a list of matches - 
+  #  - Return a list of matches -
   # need to match MacroTile also
   @staticmethod
   def get( lookupHardcodedParameters, winners ):

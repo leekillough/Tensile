@@ -35,13 +35,14 @@ struct TestData: public Tensile::LazySingleton<TestData>
     using Base = Tensile::LazySingleton<TestData>;
 
     operator bool() const;
-    
+
     static TestData Invalid();
     static TestData Env(std::string const& varName);
 
     boost::filesystem::path dataDir() const;
 
-    boost::filesystem::path file(std::string const& filename) const;
+    static std::string defaultExtension;
+    boost::filesystem::path file(std::string const& filename, std::string const& extension = defaultExtension) const;
 
     std::vector<boost::filesystem::path> glob(std::string const& pattern) const;
 

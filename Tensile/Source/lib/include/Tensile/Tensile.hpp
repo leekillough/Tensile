@@ -40,11 +40,11 @@
 #include <Tensile/geom.hpp>
 
 /**
- * \mainpage 
- * 
+ * \mainpage
+ *
  * Tensile is a tool for creating a library of tensor contractions, including
  * matrix multiplications in a benchmark-driven manner.
- * 
+ *
  * The host library contains classes and functions for selecting one or more
  * kernels to launch to solve a particular problem, and then launching those
  * kernels.  Kernels are selected based on the performance on a particular GPU
@@ -77,7 +77,7 @@ namespace Tensile
     /**
      * \ingroup Tensile
      * \defgroup  Problem Problem Definition
-     * 
+     *
      * @brief Classes for defining problems
      */
 
@@ -181,6 +181,9 @@ namespace Tensile
      */
     template <typename MyProblem, typename MySolution = typename MyProblem::Solution>
     TENSILE_API std::shared_ptr<SolutionLibrary<MyProblem, MySolution>> LoadLibraryFile(std::string const& filename);
+
+    template <typename MyProblem, typename MySolution = typename MyProblem::Solution>
+    std::shared_ptr<SolutionLibrary<MyProblem, MySolution>> LoadLibraryData(std::vector<uint8_t> const& data);
 #endif
 }
 
