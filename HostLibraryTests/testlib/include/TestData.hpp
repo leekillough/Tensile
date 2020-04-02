@@ -41,7 +41,7 @@ struct TestData: public Tensile::LazySingleton<TestData>
 
     boost::filesystem::path dataDir() const;
 
-    static std::string defaultExtension;
+    static const std::string defaultExtension;
     boost::filesystem::path file(std::string const& filename, std::string const& extension = defaultExtension) const;
 
     std::vector<boost::filesystem::path> glob(std::string const& pattern) const;

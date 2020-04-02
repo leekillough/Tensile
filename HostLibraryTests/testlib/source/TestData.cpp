@@ -40,9 +40,9 @@
 #include <Tensile/Utils.hpp>
 
 #ifdef TENSILE_YAML
-std::string TestData::defaultExtension = "yaml";
+const std::string TestData::defaultExtension = "yaml";
 #else
-std::string TestData::defaultExtension = "dat";
+const std::string TestData::defaultExtension = "dat";
 #endif
 
 TestData::operator bool() const

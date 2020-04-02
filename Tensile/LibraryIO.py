@@ -267,6 +267,7 @@ class YAMLWriter(Writer):
 
   def writeLibraryLogicForSchedule(self, filePath, schedulePrefix, architectureName, \
       deviceNames, logicTuple):
+    problemType = logicTuple[0]
     filename = os.path.join(filePath, "%s_%s.yaml" \
         % (schedulePrefix, str(problemType)))
     print2("# writeLogic( %s )" % ( filename ))
@@ -288,6 +289,7 @@ class MessagePackWriter(Writer):
 
   def writeLibraryLogicForSchedule(self, filePath, schedulePrefix, architectureName, \
       deviceNames, logicTuple):
+    problemType = logicTuple[0]
     filename = os.path.join(filePath, "%s_%s.dat" \
         % (schedulePrefix, str(problemType)))
     print2("# writeLogic( %s )" % ( filename ))
