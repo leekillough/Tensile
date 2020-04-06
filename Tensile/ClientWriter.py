@@ -473,7 +473,8 @@ def writeClientConfig(forBenchmark, solutions, problemSizes, stepName, stepBaseD
             f.write("{}={}\n".format(key, value))
 
         sourceDir = os.path.join(stepBaseDir, "source")
-        libraryFile = os.path.join(sourceDir, "library", "TensileLibrary.yaml")
+        libraryFilename = "TensileLibrary.yaml" if globalParameters["YAML"] else "TensileLibrary.dat"
+        libraryFile = os.path.join(sourceDir, "library", libraryFilename)
         param("library-file", libraryFile)
         for coFile in codeObjectFiles:
             param("code-object", os.path.join(sourceDir,coFile))
