@@ -69,15 +69,8 @@ add_library (TensileHost STATIC ${tensile_sources})
 
 target_include_directories(TensileHost INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-set(MSGPACK_DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/msgpack")
-include(ExternalProject)
-ExternalProject_Add(msgpack
-  GIT_REPOSITORY    https://github.com/msgpack/msgpack-c.git
-  GIT_TAG           cpp-3.2.1
-  CMAKE_ARGS        -DMSGPACK_CXX11=ON -DMSGPACK_BUILD_TESTS=OFF MSGPACK_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=${MSGPACK_DESTINATION}
-)
-add_dependencies(TensileHost msgpack)
-target_include_directories(TensileHost PRIVATE "${MSGPACK_DESTINATION}/include")
+find_package(msgpack)
+target_link_libraries(TensileHost PUBLIC msgpackc)
 
 if(TENSILE_USE_LLVM)
     target_compile_definitions(TensileHost PUBLIC TENSILE_DEFAULT_SERIALIZATION)
