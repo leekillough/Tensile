@@ -1442,7 +1442,7 @@ def main(  config ):
     logicTuple = analyzeProblemType( problemType, problemTypes[problemType], \
         analysisParameters)
 
-    LibraryIO.writer().writeLibraryLogicForSchedule(globalParameters["WorkingPath"], \
+    LibraryIO.configWriter(globalParameters["YAML"]).writeLibraryLogicForSchedule(globalParameters["WorkingPath"], \
         analysisParameters["ScheduleName"], analysisParameters["ArchitectureName"], \
         analysisParameters["DeviceNames"], logicTuple)
 
