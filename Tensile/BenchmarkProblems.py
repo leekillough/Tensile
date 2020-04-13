@@ -362,7 +362,7 @@ def benchmarkProblemType( problemTypeConfig, problemSizeGroupConfig, \
     ############################################################################
     # Write Solutions YAML
     ############################################################################
-    LibraryIO.configWriter().writeSolutions(solutionsFileName, benchmarkStep.problemSizes, \
+    LibraryIO.writeSolutions(solutionsFileName, benchmarkStep.problemSizes, \
         solutions )
 
     # End Iteration
