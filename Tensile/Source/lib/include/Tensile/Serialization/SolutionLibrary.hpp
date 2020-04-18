@@ -174,9 +174,14 @@ namespace Tensile
 
                 if(!iot::outputting(io))
                 {
+#if 0
                     auto cache = std::make_shared<CachingLibrary<MyProblem, MySolution>>(innerLibrary);
 
                     lib.library = cache;
+#else
+                    lib.library = innerLibrary;
+#endif
+
                 }
             }
 
@@ -184,4 +189,3 @@ namespace Tensile
         };
     }
 }
-
