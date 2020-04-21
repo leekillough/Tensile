@@ -64,7 +64,7 @@ endif()
 
 include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-if(TENSILE_INSTRUMENT_LTTNG)
+if(INSTRUMENT_LTTNG)
   target_compile_options(TensileHost PRIVATE -finstrument-functions)
 endif()
 
