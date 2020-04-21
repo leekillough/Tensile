@@ -23,6 +23,8 @@ cmake_minimum_required(VERSION 3.5)
 
 option(TENSILE_NEW_CLIENT "Build the new client" ON)
 
+option(TENSILE_INSTRUMENT_LTTNG "Instrument the library for LTTng tracing" OFF)
+
 if(TENSILE_NEW_CLIENT)
 
     project(Tensile)

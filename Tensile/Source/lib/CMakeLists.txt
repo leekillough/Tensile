@@ -64,13 +64,17 @@ endif()
 
 include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
+if(TENSILE_INSTRUMENT_LTTNG)
+  target_compile_options(TensileHost PRIVATE -finstrument-functions)
+endif()
+
 add_library (TensileHost STATIC ${tensile_sources})
 
 target_include_directories(TensileHost INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 if(TENSILE_USE_LLVM)
     target_compile_definitions(TensileHost PUBLIC TENSILE_DEFAULT_SERIALIZATION)
-    find_library(LLVMObjectYAML_LIBRARY 
+    find_library(LLVMObjectYAML_LIBRARY
         NAMES LLVMObjectYAML
         PATHS ${LLVM_LIBRARY_DIR})
     message("LLVMObjectYAML_LIBRARY: ${LLVMObjectYAML_LIBRARY}")
@@ -79,7 +83,7 @@ if(TENSILE_USE_LLVM)
         target_link_libraries(TensileHost PRIVATE LLVMObjectYAML )
     else()
         target_link_libraries(TensileHost PRIVATE LLVM )
-    endif()  
+    endif()
     target_include_directories(TensileHost PRIVATE ${LLVM_INCLUDE_DIRS})
 endif()
 
@@ -102,4 +106,3 @@ foreach (_variableName ${_variableNames})
     message(STATUS "${_variableName}=${${_variableName}}")
 endforeach()
 endif()
-
