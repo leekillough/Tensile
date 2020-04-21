@@ -64,13 +64,13 @@ endif()
 
 include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-if(INSTRUMENT_LTTNG)
-  target_compile_options(TensileHost PRIVATE -finstrument-functions)
-endif()
-
 add_library (TensileHost STATIC ${tensile_sources})
 
 target_include_directories(TensileHost INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+if(INSTRUMENT_LTTNG)
+  target_compile_options(TensileHost PRIVATE -finstrument-functions)
+endif()
 
 if(TENSILE_USE_LLVM)
     target_compile_definitions(TensileHost PUBLIC TENSILE_DEFAULT_SERIALIZATION)
