@@ -52,7 +52,7 @@ function(TensileCreateLibraryCmake
 
   execute_process(COMMAND chmod 755 ${Tensile_ROOT}/bin/TensileCreateLibrary)
   execute_process(COMMAND chmod 755 ${Tensile_ROOT}/bin/Tensile)
-  
+
   set(Tensile_CREATE_COMMAND "${Tensile_ROOT}/bin/TensileCreateLibrary")
 
   set(Tensile_SOURCE_PATH "${PROJECT_BINARY_DIR}/Tensile")
@@ -83,6 +83,10 @@ function(TensileCreateLibraryCmake
     set(Tensile_CREATE_COMMAND ${Tensile_CREATE_COMMAND} "--library-print-debug")
   else()
     set(Tensile_CREATE_COMMAND ${Tensile_CREATE_COMMAND} "--no-library-print-debug")
+  endif()
+
+  if(${Tensile_YAML})
+    set(Tensile_CREATE_COMMAND ${Tensile_CREATE_COMMAND} "--yaml")
   endif()
 
   set(Tensile_CREATE_COMMAND ${Tensile_CREATE_COMMAND} "--architecture=${Tensile_ARCHITECTURE}")
