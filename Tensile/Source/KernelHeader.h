@@ -32,22 +32,23 @@
 __device__ inline int GenDot4(int a, int b, int c)
 {
 #if(__hcc_workweek__ >= 19092) || __HIP_CLANG_ONLY__
-    union
+    typedef union PkInt8x4
     {
         int32_t i;
         char4   z;
-    } va, vb;
+    } PkInt8x4;
 #else
     typedef struct
     {
         int c0 : 8, c1 : 8, c2 : 8, c3 : 8;
     } C4I8;
-    union
+    typedef union PkInt8x4
     {
         int32_t i;
         C4I8    z;
-    } va, vb;
+    } PkInt8x4;
 #endif
+    PkInt8x4 va, vb;
     va.i = a;
     vb.i = b;
 
