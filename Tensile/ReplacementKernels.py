@@ -24,74 +24,41 @@ from .Common import globalParameters
 import os
 
 class ReplacementKernels:
-    def __init__(self, dirpath, codeObjectVersion):
-        self.dirpath = dirpath
-        self.codeObjectVersion = codeObjectVersion
-        self._cache = None
-
-    @property
-    def marker(self):
-        if self.codeObjectVersion == 'V3':
-            return '.amdhsa_kernel'
-        return '.amdgpu_hsa_kernel'
+    _instance = None
 
     def getKernelName(self, filename):
-        marker = self.marker
-
         try:
             with open(filename, 'r') as f:
                 for line in f:
-                    if line.startswith(marker):
-                        return line[len(marker):].strip()
+                    if line.startswith(self.marker):
+                        return line[len(self.marker):].strip()
         except Exception:
             print(filename)
             raise
         raise RuntimeError("Could not parse kernel name from {}".format(filename))
 
-    @property
-    def cache(self):
-        if not self._cache:
-            self._cache = self.generateCache()
-        return self._cache
+    def __init__(self):
+        if self._instance:
+            raise RuntimeError("ReplacementKernels constructed more than once")
+        self.cache = {}
+        cov2 = globalParameters['CodeObjectVersion'] == 'V2'
+        self.marker = '.amdgpu_hsa_kernel' if cov2 else '.amdhsa_kernel'
+        dirName = 'ReplacementKernels-cov2' if cov2 else 'ReplacementKernels'
+        dirPath = os.path.join(os.path.dirname(os.path.realpath(__file__)), dirName)
+        for fileName in os.listdir(dirPath):
+            if fileName.endswith('.s'):
+                filePath = os.path.join(dirPath, fileName)
+                kernelName = self.getKernelName(filePath)
+                if kernelName in self.cache:
+                    raise RuntimeError("Duplicate replacement kernels.  Kernel name: {}, file names: {}, {}".
+                                       format(kernelName, self.cache[kernelName], filePath))
+                self.cache[kernelName] = filePath
+        self._instance = self
 
-    def populateCache(self):
-        _ = self.cache
-
-    def generateCache(self):
-        cache = {}
-
-        for filename in os.listdir(self.dirpath):
-            if filename.endswith('.txt'):
-                filepath = os.path.join(self.dirpath, filename)
-                kernelName = self.getKernelName(filepath)
-                if kernelName in cache:
-                    raise RuntimeError("Duplicate replacement kernels.  Kernel name: {}, file names: {}, {}".format(kernelName, cache[kernelName], filepath))
-                cache[kernelName] = filepath
-
-        return cache
-
-    def get(self, kernelName):
-        if kernelName in self.cache:
-            return self.cache[kernelName]
-
-        return None
-
-    @classmethod
-    def Directory(cls):
-        scriptDir = os.path.dirname(os.path.realpath(__file__))
-        dirName = 'ReplacementKernels'
-        if globalParameters['CodeObjectVersion'] == 'V3':
-            dirName += '-cov3'
-
-        return os.path.join(scriptDir, dirName)
-
-    _instance = None
-    @classmethod
-    def Instance(cls):
-        if cls._instance:
-            return cls._instance
-        return cls(cls.Directory(), globalParameters["CodeObjectVersion"])
+    @staticmethod
+    def Instance():
+        return ReplacementKernels._instance or ReplacementKernels()._instance
 
     @classmethod
     def Get(cls, kernelName):
-        return cls.Instance().get(kernelName)
+        return cls.Instance().cache.get(kernelName)
