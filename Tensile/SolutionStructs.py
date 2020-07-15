@@ -1651,7 +1651,7 @@ class Solution:
     return kernels
 
   @staticmethod
-  def getKernelsBetaOnlyFromProblem(problemType, gsu):
+  def getKernelsBetaOnlyFromProblem(problemType, gsu, ga):
     kernels = []
     if gsu < 2:
       return kernels
@@ -1663,15 +1663,39 @@ class Solution:
       kernel["ProblemType"] = deepcopy(problemType)
       kernel["ProblemType"]["UseBeta"] = beta
       kernel["KernelLanguage"] = "Source"
+      kernel["_GlobalAccumulation"] = ga
       kernels.append(kernel)
     return kernels
+
+
+  @staticmethod
+  def getKernelsGlobalAccumFromProblem(problemType, gsu, ga):
+    kernels = []
+    if gsu < 2 or (not ga):
+      return kernels
+
+    kernel = {}
+    kernel["ProblemType"] = deepcopy(problemType)
+    kernel["KernelLanguage"] = "Source"
+    kernels.append(kernel)
+    return kernels
+
 
   ########################################
   # get a list of kernel parameters for this solution
   def getKernelsBetaOnly(self):
     return self.getKernelsBetaOnlyFromProblem( \
             self["ProblemType"], \
-            self["GlobalSplitU"])
+            self["GlobalSplitU"], \
+            self["_GlobalAccumulation"])
+
+
+  def getKernelsGlobalAccum(self):
+    return self.getKernelsGlobalAccumFromProblem( \
+            self["ProblemType"], \
+            self["GlobalSplitU"],
+            self["_GlobalAccumulation"])
+
 
   ########################################
   # assign tile sizes
@@ -2149,6 +2173,14 @@ class Solution:
         state['_'+s] = state[s]
         #del state[s]
 
+    dataType = state["ProblemType"]["DataType"]
+    state["_GlobalAccumulation"] = (dataType.isBFloat16() or dataType.isHalf()) \
+                                 and state["ProblemType"]["HighPrecisionAccumulate"] \
+                                 and state["GlobalSplitU"] > 1 \
+                                 and state["EnableMatrixInstruction"]
+
+    state["_WorkspaceSizePerElemC"] = 4 if state["_GlobalAccumulation"] else 0
+
     if state["VectorStore"] == -1:
         state["_VectorStore"] = 1 # default, may be changed if needed to generate a valid kernel
 
@@ -2172,18 +2204,15 @@ class Solution:
       reject(state, "Non-MI kernels are already non-overlapping in pre-allocated registers")
 
     if state["EnableMatrixInstruction"]:
-      if not (state["ProblemType"]["DataType"].isSingle() \
-              or state["ProblemType"]["DataType"].isBFloat16() \
-              or state["ProblemType"]["DataType"].isHalf()):
-        reject(state, "didn't support Matrix Instruction with type %s" % str(state["ProblemType"]["DataType"]))
+      if not (dataType.isSingle() or dataType.isBFloat16() or dataType.isHalf()):
+        reject(state, "didn't support Matrix Instruction with type %s" % str(dataType))
       if not state["MIBlock"] or len(state["MIBlock"]) != 6:
         reject(state, "invalid MIBlock")
       if not state["MIWaveGroup"] or len(state["MIWaveGroup"]) != 2:
         reject(state, "invalid MIWaveGroup")
       if not state["MIWaveTile"] or len(state["MIWaveTile"]) != 2:
         reject(state, "invalid MIWaveTile")
-      if not state["ProblemType"]["HighPrecisionAccumulate"] \
-         and not state["ProblemType"]["DataType"].isSingle() :
+      if not state["ProblemType"]["HighPrecisionAccumulate"] and not dataType.isSingle():
         reject(state, "Matrix instructions for half types are natively accumulated" + \
          " in fp32 precision. Please add the following config:" + \
          "\n - HighPrecisionAccumulate: True")
@@ -2422,8 +2451,7 @@ class Solution:
 
     # GlobalSplitU doesn't work with some other things:
     if state["GlobalSplitU"] > 1:
-      if not state["GlobalSplitUSummationAssignmentRoundRobin"] \
-          and state["LoopTail"]:
+      if not state["GlobalSplitUSummationAssignmentRoundRobin"] and state["LoopTail"]:
         reject(state, "GlobalSplitU and LoopTail require SummationAssignmentRoundRobin=True since strongly breaks Tensile kernel architecture")
         return
       # added GSU support for DGEMM
@@ -2432,18 +2460,16 @@ class Solution:
         state["ProblemType"]["DataType"].isDouble() or \
         state["ProblemType"]["DestDataType"].isInt32() or \
         (state["KernelLanguage"] == "Assembly" and \
-         (state["ProblemType"]["DataType"].isHalf() and \
-          not state["ProblemType"]["HighPrecisionAccumulate"]))
+         (state["ProblemType"]["DataType"].isHalf() and not state["ProblemType"]["HighPrecisionAccumulate"]) or \
+         state["_GlobalAccumulation"])
       if not supported:
         reject(state, "GlobalSplitU only compatible with single or asm and (half or mixed) precision")
         return
 
     if state["VectorAtomicWidth"] == -1:
-      if state["ProblemType"]["DataType"].isHalf():
+      state["VectorAtomicWidth"] = 1 # TODO - remove this and next line when VAW works for other types
+      if state["ProblemType"]["DataType"].isHalf() and (not state["_GlobalAccumulation"]):
         state["VectorAtomicWidth"] = 2
-        #state["VectorAtomicWidth"] = 8 / state["ProblemType"]["DataType"].numBytes()
-      else:
-        state["VectorAtomicWidth"] = 1 # TODO - remove this and next line when VAW works for other types
 
     if state["VectorAtomicWidth"] >= 2 \
        and not state["ProblemType"]["DataType"].isHalf():
@@ -2455,8 +2481,8 @@ class Solution:
       if state["VectorWidth"] < 2:
         reject(state, "Assembly half requires VectorWidth >= 2")
 
-      if state["GlobalSplitU"] > 1:
-        if state["VectorAtomicWidth"] <2:
+      if state["GlobalSplitU"] > 1 and (not state["_GlobalAccumulation"]):
+        if state["VectorAtomicWidth"] < 2:
           reject(state, "Assembly GSU half requires VectorWidth >= 2 (for 32-bit CAS)")
 
         if state["AssertFree0ElementMultiple"] < 2:
