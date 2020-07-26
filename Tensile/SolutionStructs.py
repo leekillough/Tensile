@@ -28,6 +28,9 @@ from .Common import assignParameterRequired, assignParameterWithDefault, \
 from .DataType import DataType
 from .Utils import roundUpToNearestMultiple
 
+from .KernelWriterBetaOnly import KernelWriterBetaOnly
+from .KernelWriterConversion import KernelWriterConversion
+
 from collections import namedtuple,OrderedDict
 from copy import deepcopy
 from enum import Enum
@@ -1641,8 +1644,11 @@ class Solution:
     Solution.assignDerivedParameters(self._state)
     self._name = None
 
+    self.initHelperKernelObjests()
+
   # these keys are copied from ProblemType to internal that may be overridden
   InternalKeys = ["UseSgprForGRO","VectorStore"]
+
 
   ########################################
   # get a list of kernel parameters for this solution
@@ -1653,51 +1659,58 @@ class Solution:
     kernels.append(kernel)
     return kernels
 
-  @staticmethod
-  def getKernelsBetaOnlyFromProblem(problemType, gsu, ga):
-    kernels = []
-    if gsu < 2:
-      return kernels
-    betas = [False]
-    if problemType["UseBeta"]:
-      betas.append(True)
-    for beta in betas:
-      kernel = {}
-      kernel["ProblemType"] = deepcopy(problemType)
-      kernel["ProblemType"]["UseBeta"] = beta
-      kernel["KernelLanguage"] = "Source"
-      kernel["_GlobalAccumulation"] = ga
-      kernels.append(kernel)
-    return kernels
 
-
-  @staticmethod
-  def getKernelsGlobalAccumFromProblem(problemType, gsu, ga):
-    kernels = []
-    if gsu < 2 or (not ga):
-      return kernels
-
-    kernel = {}
-    kernel["ProblemType"] = deepcopy(problemType)
-    kernel["KernelLanguage"] = "Source"
-    kernels.append(kernel)
-    return kernels
+  ########################################
+  # create Helper Kernels
+  def initHelperKernelObjests(self):
+    self.initBetaOnlyKernelObjects()
+    self.initConversionKernelObjects()
 
 
   ########################################
-  # get a list of kernel parameters for this solution
-  def getKernelsBetaOnly(self):
-    return self.getKernelsBetaOnlyFromProblem( \
-            self["ProblemType"], \
-            self["GlobalSplitU"], \
-            self["_GlobalAccumulation"])
+  # create BetaONly Kernels
+  def initBetaOnlyKernelObjects(self):
+    self.betaOnlyKernelObjects = []
+    if self["GlobalSplitU"] > 1:
+      betas = [False]
+      if self["ProblemType"]["UseBeta"]:
+        betas.append(True)
+      for beta in betas:
+        state = {}
+        state["ProblemType"] = deepcopy(self["ProblemType"])
+        state["ProblemType"]["UseBeta"] = beta
+        state["KernelLanguage"] = "Source"
+        state["_GlobalAccumulation"] = self["_GlobalAccumulation"]
+        self.betaOnlyKernelObjects.append(KernelWriterBetaOnly(state))
 
 
-  def getKernelsGlobalAccum(self):
-    return self.getKernelsGlobalAccumFromProblem( \
-            self["ProblemType"], \
-            self["GlobalSplitU"],
-            self["_GlobalAccumulation"])
+  ########################################
+  # create Conversion Kernels
+  def initConversionKernelObjects(self):
+    self.conversionKernelObjects = []
+    if (self["GlobalSplitU"] > 1 and self["_GlobalAccumulation"]):
+      state = {}
+      state["ProblemType"] = deepcopy(self["ProblemType"])
+      state["KernelLanguage"] = "Source"
+      self.conversionKernelObjects.append(KernelWriterConversion(state))
+
+
+  ########################################
+  # get Helper Kernels
+  def getHelperKernelObjects(self):
+    return self.betaOnlyKernelObjects + self.conversionKernelObjects
+
+
+  ########################################
+  # get Helper Kernels
+  def getKernelBetaOlnyObjects(self):
+    return self.betaOnlyKernelObjects
+
+
+  ########################################
+  # get Helper Kernels
+  def getKernelConversionObjects(self):
+    return self.conversionKernelObjects
 
 
   ########################################
@@ -3400,33 +3413,44 @@ class Solution:
       printExit("Parameter \"%s\" is new object type" % str(value) )
       return str(value)
 
+
+  ##########################
   # make class look like dict
   def keys(self):
     return list(self._state.keys())
+
   def __len__(self):
     return len(self._state)
+
   def __iter__(self):
     return iter(self._state)
 
   def __getitem__(self, key):
     return self._state[key]
+
   def __setitem__(self, key, value):
     self._name = None
     self._state[key] = value
+
   def __str__(self):
     if self._name is None:
       self._name = Solution.getNameFull(self._state)
     return self._name
+
   def __repr__(self):
     return self.__str__()
+
   def getAttributes(self):
     return deepcopy(self._state)
+
   def __hash__(self):
     return hash(str(self))
     #return hash(self.getAttributes())
+
   def __eq__(self, other):
     #return isinstance(other, Solution) and self.getAttributes() == other.getAttributes()
     return isinstance(other, Solution) and str(self) == str(other)
+
   def __ne__(self, other):
     result = self.__eq__(other)
     if result is NotImplemented:

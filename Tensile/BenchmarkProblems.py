@@ -39,7 +39,6 @@ from .ClientWriter import runClient, writeClientParameters, writeClientConfig
 from .Common import globalParameters, HR, pushWorkingPath, popWorkingPath, print1, print2, printExit, printWarning, ensurePath, startTime
 from .KernelWriterAssembly import KernelWriterAssembly
 from .KernelWriterSource import KernelWriterSource
-from .KernelWriter import KernelWriter
 from .SolutionStructs import Solution, ProblemType, ProblemSizes
 from .SolutionWriter import SolutionWriter
 from .TensileCreateLibrary import writeSolutionsAndKernels, writeCMake, buildObjectFileNames
@@ -493,12 +492,10 @@ def writeBenchmarkFiles(stepBaseDir, solutions, problemSizes, stepName, filesToC
   ##############################################################################
 
   kernels = []
-  kernelsBetaOnly = []
-  kernelsGlobalAccum = []
+  kernelHelperOjbs = []
 
   kernelNames = set()
-  kernelNamesBetaOnly = set()
-  kernelNamesGlobalAccum = set()
+  kernelHelperNames = set()
 
   for solution in Utils.tqdm(solutions, "Finding unique solutions"):
     solutionKernels = solution.getKernels()
@@ -507,35 +504,27 @@ def writeBenchmarkFiles(stepBaseDir, solutions, problemSizes, stepName, filesToC
       if kName not in kernelNames:
         kernels.append(kernel)
         kernelNames.add(kName)
-    solutionKernelsBetaOnly = solution.getKernelsBetaOnly()
-    for kernel in solutionKernelsBetaOnly:
-      kName = KernelWriter.getKernelNameBetaOnly(kernel)
-      if kName not in kernelNamesBetaOnly:
-        kernelsBetaOnly.append(kernel)
-        kernelNamesBetaOnly.add(kName)
-    solutionKernelsGlobalAccum = solution.getKernelsGlobalAccum()
-    for kernel in solutionKernelsGlobalAccum:
-      kName = KernelWriter.getKernelNameGlobalAccum(kernel)
-      if kName not in kernelNamesGlobalAccum:
-        kernelsGlobalAccum.append(kernel)
-        kernelNamesGlobalAccum.add(kName)
+
+    solutionHelperKernels = solution.getHelperKernelObjects()
+    for ko in solutionHelperKernels:
+      kname = ko.getKernelName()
+      if kname not in kernelHelperNames:
+        kernelHelperOjbs.append(ko)
+        kernelHelperNames.add(kname)
+
 
   solutionSerialNaming = Solution.getSerialNaming(solutions)
-  kernelSerialNaming = Solution.getSerialNaming(kernels)
-  solutionMinNaming = Solution.getMinNaming(solutions)
-  kernelMinNaming = Solution.getMinNaming(kernels)
-  solutionWriter = SolutionWriter( \
-      solutionMinNaming, solutionSerialNaming, \
-      kernelMinNaming, kernelSerialNaming)
-  kernelWriterSource = KernelWriterSource( \
-      kernelMinNaming, kernelSerialNaming)
-  kernelWriterAssembly = KernelWriterAssembly( \
-      kernelMinNaming, kernelSerialNaming)
+  kernelSerialNaming   = Solution.getSerialNaming(kernels)
+  solutionMinNaming    = Solution.getMinNaming(solutions)
+  kernelMinNaming      = Solution.getMinNaming(kernels)
+  solutionWriter       = SolutionWriter(solutionMinNaming, solutionSerialNaming, kernelMinNaming, kernelSerialNaming)
+  kernelWriterSource   = KernelWriterSource(kernelMinNaming, kernelSerialNaming)
+  kernelWriterAssembly = KernelWriterAssembly(kernelMinNaming, kernelSerialNaming)
 
   # write solution, kernels and CMake
   problemType = solutions[0]["ProblemType"]
   codeObjectFiles = writeSolutionsAndKernels( \
-      globalParameters["WorkingPath"], globalParameters["CxxCompiler"], [problemType], solutions, kernels, kernelsBetaOnly, kernelsGlobalAccum, \
+      globalParameters["WorkingPath"], globalParameters["CxxCompiler"], [problemType], solutions, kernels, kernelHelperOjbs, \
       solutionWriter, kernelWriterSource, kernelWriterAssembly, errorTolerant=True )
 
   newLibraryFilename = "TensileLibrary.yaml" if globalParameters["LibraryFormat"] == "yaml" else "TensileLibrary.dat"
@@ -586,7 +575,7 @@ def writeBenchmarkFiles(stepBaseDir, solutions, problemSizes, stepName, filesToC
    asmKernelFiles,
    sourceLibFiles,
    asmLibFiles) = buildObjectFileNames(solutionWriter, kernelWriterSource, \
-    kernelWriterAssembly, solutions, kernels, kernelsBetaOnly, kernelsGlobalAccum)
+    kernelWriterAssembly, solutions, kernels, kernelHelperOjbs)
 
   writeCMake(outputPath, solutionFiles, sourceKernelFiles, filesToCopy)
 

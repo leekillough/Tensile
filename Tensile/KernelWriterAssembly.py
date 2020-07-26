@@ -11375,47 +11375,6 @@ class KernelWriterAssembly(KernelWriter):
     return kStr if self.serializedStore else kStr+str(self.codeAccVgprRead)
 
 
-  ##############################################################################
-  #
-  #   Beta-Only Kernel
-  #
-  ##############################################################################
-
-  ##############################################################################
-  # Function Signature
-  ##############################################################################
-  def functionSignatureBetaOnly(self, kernel):
-    kStr = ""
-    return kStr
-
-  ##############################################################################
-  # Kernel Body Beta-Only
-  ##############################################################################
-  def kernelBodyBetaOnly(self, kernel):
-    kStr = ""
-    return kStr
-
-  ##############################################################################
-  #
-  #   Kernel for Global Accumulation Buffer
-  #
-  ##############################################################################
-
-  ##############################################################################
-  # Function Signature
-  ##############################################################################
-  def functionSignatureGlobalAccum(self, kernel):
-    kStr = ""
-    return kStr
-
-  ##############################################################################
-  # Kernel Body Beta-Only
-  ##############################################################################
-  def kernelBodyGlobalAccum(self, kernel):
-    kStr = ""
-    return kStr
-
-
   # Perform 32-bit scalar mul and save u64 result in two SGPR
   # src0 and src1 are 32-bit unsigned ints in scalar sgpr or small int constants (<64?))
   # return retuns in dst0:dest (lower 32-bit in dst0, high 64-bit in dst1))

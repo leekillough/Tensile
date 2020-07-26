@@ -191,8 +191,8 @@ class SolutionWriter:
       s += "%s}\n" % (t)
 
       if gsu > 1:
-        for beta in solution.getKernelsBetaOnly():
-          kernelName = self.kernelWriter.getKernelNameBetaOnly(beta)
+        for ko in solution.getKernelBetaOlnyObjects():
+          kernelName = ko.getKernelName(ko)
           s += "%scl_kernel kernel_%s;\n" % (t, kernelName)
           s += "%s  tensileGetCompiledOpenCLKernel(\n" % (t)
           s += "%s      &kernel_%s,\n" % (t, kernelName)
@@ -441,8 +441,8 @@ class SolutionWriter:
       kernelNamesBetaOnly = []
       numStridesC = problemType["NumIndicesC"] - \
           (0 if problemType["UseInitialStridesCD"] else 1)
-      for beta in solution.getKernelsBetaOnly():
-        kernelName = self.kernelWriter.getKernelNameBetaOnly(beta)
+      for ko in solution.getKernelBetaOlnyObjects():
+        kernelName = ko.getKernelName()
         kernelNamesBetaOnly.append(kernelName)
       s += "%s// enqueue Beta-Only kernel\n" % (t)
 
@@ -870,8 +870,8 @@ class SolutionWriter:
     ###################################################
     if solution["_GlobalAccumulation"]:
       numStridesC = problemType["NumIndicesC"] - (0 if problemType["UseInitialStridesCD"] else 1)
-      for kernel in solution.getKernelsGlobalAccum():
-        kernelName = self.kernelWriter.getKernelNameGlobalAccum(kernel)
+      for ko in solution.getKernelConversionObjects():
+        kernelName = ko.getKernelName()
         s += "%s// enqueue GSU third kernel\n" % (t)
 
         # grid sizes
@@ -989,11 +989,8 @@ class SolutionWriter:
         if kernel != None:
           kernelName = self.kernelWriter.getKernelName(kernel)
           s += "#include \"" + kernelName + ".h\"\n"
-      for kernel in solution.getKernelsBetaOnly():
-        kernelName = self.kernelWriter.getKernelNameBetaOnly(kernel)
-        s += "#include \"" + kernelName + ".h\"\n"
-      for kernel in solution.getKernelsGlobalAccum():
-        kernelName = self.kernelWriter.getKernelNameGlobalAccum(kernel)
+      for ko in solution.getHelperKernelObjects():
+        kernelName = ko.getKernelName()
         s += "#include \"" + kernelName + ".h\"\n"
 
       s += "\n"
