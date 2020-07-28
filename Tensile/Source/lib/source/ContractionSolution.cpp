@@ -851,18 +851,13 @@ namespace Tensile
         return spm;
     }
 
-    static constexpr auto HPA_GSU_WORKSPACE_SIZE_GRANULARITY
-        = Tensile::ContractionProblem::HPA_GSU_WORKSPACE_SIZE_GRANULARITY;
-
     size_t ContractionSolution::requiredWorkspaceSize(Problem const& problem) const
     {
         size_t size = 0;
 
         size += problem.d().totalAllocatedElements() * sizeMapping.workspaceSizePerElemC;
 
-        return ((size + HPA_GSU_WORKSPACE_SIZE_GRANULARITY - 1)
-                / HPA_GSU_WORKSPACE_SIZE_GRANULARITY)
-               * HPA_GSU_WORKSPACE_SIZE_GRANULARITY;
+        return size;
     }
 
     ContractionSolution::ProjectedPerformance

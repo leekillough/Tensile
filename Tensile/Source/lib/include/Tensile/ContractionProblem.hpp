@@ -506,13 +506,9 @@ namespace Tensile
             return getOperationDescription();
         }
 
-        static constexpr size_t HPA_GSU_WORKSPACE_SIZE_GRANULARITY = 256;
-
         void setWorkspaceSize(size_t size)
         {
-            m_workspaceSize = ~size ? (size / HPA_GSU_WORKSPACE_SIZE_GRANULARITY)
-                                          * HPA_GSU_WORKSPACE_SIZE_GRANULARITY
-                                    : size;
+            m_workspaceSize = size;
         }
 
         size_t workspaceSize() const
@@ -569,7 +565,7 @@ namespace Tensile
         size_t m_allocatedElementsNonBatchA;
         size_t m_allocatedElementsNonBatchB;
 
-        size_t m_workspaceSize = 0;
+        size_t m_workspaceSize;
 
         void normalize();
         void consistencyCheck() const;

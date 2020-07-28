@@ -536,8 +536,8 @@ namespace Tensile
         , m_batchIndices(batchIndices)
         , m_boundIndices(boundIndices)
         , m_beta(beta)
+        , m_workspaceSize(workspaceSize)
     {
-        setWorkspaceSize(workspaceSize);
         consistencyCheck();
         normalize();
     }
